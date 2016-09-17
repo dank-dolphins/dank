@@ -30,12 +30,20 @@ a {
 .mdl-card {
     display: block;
 }
+h1 {
+  font-family: 'Righteous' !important;
+  color: rgb(240, 72, 72);
+}
 h3 {
-    background: url('firebase-logo.png') no-repeat;
     background-size: 40px;
     padding-left: 50px;
     background-position-y: -2px;
 }
+
+.logo-sub {
+  margin-top: -20px;
+}
+
 .mdl-textfield {
     width: 100%;
 }

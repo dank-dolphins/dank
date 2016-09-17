@@ -12,3 +12,17 @@
 [info] Public Directory: ./
 [info] 
 [info] Server listening at: http://localhost:5000
+[debug] ----------------------------------------------------------------------
+[debug] Command:      /usr/local/bin/node /usr/local/bin/firebase serve
+[debug] CLI Version:  3.0.7
+[debug] Platform:     darwin
+[debug] Node Version: v5.6.0
+[debug] Time:         Sat Sep 17 2016 19:49:25 GMT-0400 (EDT)
+[debug] ----------------------------------------------------------------------
+[debug] 
+[info] Starting Firebase development server...
+[info] 
+[info] Project Directory: /Users/jacksonkearl/Developer/hackmit
+[info] Public Directory: ./
+[info] 
+[info] Server listening at: http://localhost:5000

@@ -30,6 +30,9 @@ var topUserPostsSection = document.getElementById('top-user-posts-list');
 var recentMenuButton = document.getElementById('menu-recent');
 var myPostsMenuButton = document.getElementById('menu-my-posts');
 var myTopPostsMenuButton = document.getElementById('menu-my-top-posts');
+var searchMovieButton = document.getElementById('load-movie-data')
+var foundMovieSubmit = document.getElementById('found-movie-submit')
+
 var listeningFirebaseRefs = [];
 
 /**
@@ -45,6 +48,7 @@ function MovieSuggestion(uid, username, picture, title, body, dankness) {
     title: title,
     moviePic: picture,
     dankness: dankness,
+    watched: false,
     dank_calc: {numer:dankness, denom:1.0}
   };
 
@@ -128,7 +132,7 @@ function toggleVote(postRef, uid, vote, postElement) {
 /**
  * Creates a post element.
  */
-function createPostElement(postId, title, text, author, authorId, moviePic, dankness) {
+function createPostElement(postId, title, text, author, authorId, moviePic, dankness, watched) {
   var uid = firebase.auth().currentUser.uid;
 
   var html =
@@ -147,7 +151,13 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
             '<div class="downvote material-icons">expand_more</div>' +
             '<div class="upvote material-icons">expand_less</div>' +
           '</span>' +
-          '<div class="text"></div></div>' +
+          '<div class="text"></div>'+
+
+          '<button href="http://google.com" type="button" class="mdl-button mdl-js-button mdl-color--blue-400 mdl-shadow--4dp mdl-js-ripple-effect add-to-survey">Agreed to Watch?</button>' +
+
+          '<button href="http://google.com" type="button" class="mdl-button mdl-js-button mdl-color--amber-400 mdl-shadow--4dp mdl-js-ripple-effect resolve-dank">Resolve <em>Value As A Person</em>\'s</button>' +
+
+          '</div>' +
           '<div class="comments-container" style="clear:both;"></div>' +
           '<form class="add-comment" action="#">' +
             '<div class="mdl-textfield mdl-js-textfield">' +
@@ -171,6 +181,37 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
   var commentInput = postElement.getElementsByClassName('new-comment')[0];
   var upvote = postElement.getElementsByClassName('upvote')[0];
   var downvote = postElement.getElementsByClassName('downvote')[0];
+  var addToSurvey = postElement.getElementsByClassName('add-to-survey')[0];
+  var resolveDank = postElement.getElementsByClassName('resolve-dank')[0];
+
+  addToSurvey.onclick = function () {
+    alert("Great!\nBe sure to vote once you watch it and it appears in the Survey Queue")
+    var globalPostRef = firebase.database().ref('/posts/' + postId);
+    globalPostRef.transaction(function (post) {
+      post.watched = true;
+      post.dankNaught = post.dankness
+      post.dankness = post.reviews.rottenTomatoes * 100;
+      post.dank_calc = {numer:post.dankness, denom:1.0}
+      post.votes = {}
+      return post;
+    })
+  }
+
+  resolveDank.onclick = function () {
+    var globalPostRef = firebase.database().ref('/posts/' + postId);
+    globalPostRef.transaction(function (post) {
+      post.watched = true;
+      post.dankFinal = post.dankness
+
+      post.deltaDank = post.dankFinal - post.dankNaught;
+
+      post.dank_calc = {numer:post.dankness, denom:1.0}
+      post.votes = {}
+      return post;
+    })
+  }
+
+
 
   // Set values.
   postElement.getElementsByClassName('text')[0].innerText = text;
@@ -208,11 +249,20 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
     updateVotedByCurrentUser(postElement, snapshot.val());
   });
 
-  var votedStatusRef = firebase.database().ref('posts/' + postId + '/dankness')
-  votedStatusRef.on('value', function(snapshot) {
+  var danknessStatusRef = firebase.database().ref('posts/' + postId + '/dankness')
+  danknessStatusRef.on('value', function(snapshot) {
     postElement.getElementsByClassName('mdl-card__title-text')[0].innerHTML = title +
                                   ":<span class='dankness'>" + Math.round(snapshot.val()*100) + "%</span> Dank ";
     console.log(snapshot.val());
+  });
+
+  var watchedStatusRef = firebase.database().ref('posts/' + postId + '/watched')
+  watchedStatusRef.on('value', function(snapshot) {
+    if (snapshot.val()) {
+      postElement.classList.add("watched")
+    } else {
+      postElement.classList.add("suggested")
+    }
   });
 
   // Keep track of all Firebase reference on which we are listening.
@@ -321,7 +371,7 @@ function startDatabaseQueries() {
       var containerElement = sectionElement.getElementsByClassName('posts-container')[0];
 
       containerElement.insertBefore(
-          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().moviePic, data.val().dankness),
+          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().moviePic, data.val().dankness, data.val().watched),
           containerElement.firstChild);
     });
     // postsRef.on('child_changed', function(data, old) {
@@ -445,29 +495,32 @@ window.addEventListener('load', function() {
   });
 
   // Bind Sign out button.
-  signOutButton.addEventListener('click', function() {
-    firebase.auth().signOut();
-  });
+  // signOutButton.addEventListener('click', function() {
+  //   firebase.auth().signOut();
+  // });
 
   // Listen for auth state changes
   firebase.auth().onAuthStateChanged(onAuthStateChanged);
 
-  // Saves message on form submit.
-  messageForm.onsubmit = function(e) {
-    e.preventDefault();
+  searchMovieButton.onclick = function () {
+    document.getElementById('found-movie-title').innerText = 'Not Found :(';
+    document.getElementById('found-movie-summary').innerText = 'Perhaps an alternate spelling?';
+    document.getElementById('found-movie-img').src = '';
 
-    var title = titleInput.value;
+    getMovieInfo(titleInput.value, function (movie) {
+      document.getElementById('found-movie-title').innerText = movie.title;
+      document.getElementById('found-movie-summary').innerText = movie.summary;
+      document.getElementById('found-movie-img').src = movie.img;
 
-    var callback = function (movie) {
-      newPostForCurrentUser(movie.title, movie.summary, movie.img, movie.ratings.rottenTomatoes).then(function() {
-        myTopPostsMenuButton.click();
-      });
-      messageInput.value = '';
-      titleInput.value = '';
-    }
+      foundMovieSubmit.onclick = function () {
+        newPostForCurrentUser(movie.title, movie.summary, movie.img, movie.ratings.rottenTomatoes).then(function() {
+            myTopPostsMenuButton.click();
+          });
+          titleInput.value = '';
+      }
 
-    getMovieInfo(title, callback)
-  };
+    })
+  }
 
   // Bind menu buttons.
   recentMenuButton.onclick = function() {
@@ -478,7 +531,6 @@ window.addEventListener('load', function() {
   };
   addButton.onclick = function() {
     showSection(addPost);
-    messageInput.value = '';
     titleInput.value = '';
   };
   myTopPostsMenuButton.onclick();

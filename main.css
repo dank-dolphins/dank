@@ -193,6 +193,35 @@ h1 {
 
 /* Navigation Bar */
 
+#recent-posts-list .watched {
+  display: block;
+}
+
+#recent-posts-list .add-to-survey {
+  display: none;
+}
+/*#recent-posts-list .text {
+  display: none;
+}
+#recent-posts-list .avatar {
+  display: none;
+}*/
+
+
+#recent-posts-list .suggested {
+  display: none;
+}
+
+#top-user-posts-list .watched {
+  display: none;
+}
+#top-user-posts-list .resolve-dank {
+  display: none;
+}
+#top-user-posts-list .suggested {
+  display: block;
+}
+
 .header .mdl-tab {
     padding-left: 23px;
     box-sizing: border-box;
@@ -231,6 +260,17 @@ h1 {
     right: 0;
     position: absolute;
 }
+
+
+.add-to-survey, .resolve-dank {
+  margin: 10px;
+  color:white;
+}
+
+.resolve-dank {
+  color:#111;
+}
+
 
 /* Drawer */
 

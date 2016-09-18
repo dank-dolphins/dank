@@ -41,7 +41,7 @@ function writeNewPost(uid, username, picture, title, body) {
   var postData = {
     author: username,
     uid: uid,
-    body: body,
+    body: '',
     title: title,
     starCount: 0,
     authorPic: picture

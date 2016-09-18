@@ -162,6 +162,7 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
   var div = document.createElement('div');
   div.innerHTML = html;
   var postElement = div.firstChild;
+  postElement.id = postId;
   if (componentHandler) {
     componentHandler.upgradeElements(postElement.getElementsByClassName('mdl-textfield')[0]);
   }
@@ -205,6 +206,13 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
   var votedStatusRef = firebase.database().ref('posts/' + postId + '/votes/' + uid)
   votedStatusRef.on('value', function(snapshot) {
     updateVotedByCurrentUser(postElement, snapshot.val());
+  });
+
+  var votedStatusRef = firebase.database().ref('posts/' + postId + '/dankness')
+  votedStatusRef.on('value', function(snapshot) {
+    postElement.getElementsByClassName('mdl-card__title-text')[0].innerHTML = title +
+                                  ":<span class='dankness'>" + Math.round(snapshot.val()*100) + "%</span> Dank ";
+    console.log(snapshot.val());
   });
 
   // Keep track of all Firebase reference on which we are listening.
@@ -316,6 +324,13 @@ function startDatabaseQueries() {
           createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().moviePic, data.val().dankness),
           containerElement.firstChild);
     });
+    // postsRef.on('child_changed', function(data, old) {
+    //   if(old) {
+    //     var post = document.getElementById(old)
+    //     post.getElementsByClassName('mdl-card__title-text')[0].innerHTML = data.val().title +
+    //                       ":<span class='dankness'>" + Math.round(data.val().dankness*100) + "%</span> Dank ";
+    //   }
+    // });
   };
 
   // Fetching and displaying all posts of each sections.
@@ -411,7 +426,6 @@ function showSection(sectionElement, buttonElement) {
   topUserPostsSection.style.display = 'none';
   addPost.style.display = 'none';
   recentMenuButton.classList.remove('is-active');
-  myPostsMenuButton.classList.remove('is-active');
   myTopPostsMenuButton.classList.remove('is-active');
 
   if (sectionElement) {
@@ -459,9 +473,6 @@ window.addEventListener('load', function() {
   recentMenuButton.onclick = function() {
     showSection(recentPostsSection, recentMenuButton);
   };
-  myPostsMenuButton.onclick = function() {
-    showSection(userPostsSection, myPostsMenuButton);
-  };
   myTopPostsMenuButton.onclick = function() {
     showSection(topUserPostsSection, myTopPostsMenuButton);
   };
@@ -470,5 +481,5 @@ window.addEventListener('load', function() {
     messageInput.value = '';
     titleInput.value = '';
   };
-  recentMenuButton.onclick();
+  myTopPostsMenuButton.onclick();
 }, false);

@@ -401,9 +401,9 @@ window.addEventListener('load', function() {
   // Saves message on form submit.
   messageForm.onsubmit = function(e) {
     e.preventDefault();
-    var text = messageInput.value;
     var title = titleInput.value;
-    if (text && title) {
+    var text = ''
+    if ( title) {
       newPostForCurrentUser(title, text).then(function() {
         myPostsMenuButton.click();
       });

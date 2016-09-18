@@ -188,8 +188,10 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
     alert("Great!\nBe sure to vote once you watch it and it appears in the Survey Queue")
     var globalPostRef = firebase.database().ref('/posts/' + postId);
 
+    postElement.classList.add("watched")
+    postElement.classList.remove("suggested")
 
-      postElement.classList.add("watched")
+
 
     globalPostRef.transaction(function (post) {
       post.watched = true;

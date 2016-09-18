@@ -24,6 +24,16 @@ function getMovieInfo(name, callback) {
             callback(movie)
         }
       )
+      httpGetAsync(
+        'https://www.rottentomatoes.com/m/' + movie.title.replace(/ /g, "_").replace(/the_/i, ""),
+        function(data) {
+          var rating_text = $(data).find('#tomato_meter_link').text().trim()
+
+          movie.ratings.rottenTomatoes = rating_text.slice(0,2)
+          if (movie && callback)
+            callback(movie)
+        }
+      )
     }
   )
 }

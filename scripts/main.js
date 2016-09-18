@@ -43,9 +43,9 @@ function MovieSuggestion(uid, username, picture, title, body, dankness) {
     uid: uid,
     body: body,
     title: title,
-    starCount: 0,
     moviePic: picture,
-    dankness: dankness
+    dankness: dankness,
+    dank_calc: {numer:dankness, denom:1.0}
   };
 
   // Get a key for a new Post.
@@ -54,7 +54,6 @@ function MovieSuggestion(uid, username, picture, title, body, dankness) {
   // Write the new post's data simultaneously in the posts list and the user's post list.
   var updates = {};
   updates['/posts/' + newPostKey] = postData;
-  updates['/user-posts/' + uid + '/' + newPostKey] = postData;
 
   return firebase.database().ref().update(updates);
 }
@@ -64,19 +63,61 @@ function MovieSuggestion(uid, username, picture, title, body, dankness) {
  * Star/unstar post.
  */
 // [START post_stars_transaction]
-function toggleStar(postRef, uid) {
+function toggleVote(postRef, uid, vote) {
+  var value_as_a_person = 0.5
   postRef.transaction(function(post) {
     if (post) {
-      if (post.stars && post.stars[uid]) {
-        post.starCount--;
-        post.stars[uid] = null;
-      } else {
-        post.starCount++;
-        if (!post.stars) {
-          post.stars = {};
+      if (post.votes && post.votes[uid]) {
+        if (post.votes[uid] !== vote)  {
+          if (vote === "up") {
+
+            console.log("we changed our vote to upvote");
+            console.log("adding " + value_as_a_person + " to our numerator");
+            console.log("previous numerator was", post.dank_calc.numer);
+
+            post.dank_calc.numer += value_as_a_person
+
+          } else {
+
+            console.log("we changed our vote to downvote");
+            console.log("subtracting " + value_as_a_person + " from our numerator");
+            console.log("previous numerator was", post.dank_calc.numer);
+
+            post.dank_calc.numer -= value_as_a_person
+          }
+
+          post.votes[uid] = vote;
+        } else {
+          console.log("we reclicked on the same vote, removing")
+          if (vote == "up") {
+            post.dank_calc.numer -= value_as_a_person
+          }
+          post.dank_calc.denom -= value_as_a_person
+          delete post.votes[uid]
+          document.getElementsByClassName('selected')[0].classList.remove('selected')
         }
-        post.stars[uid] = true;
+      } else {
+        if (!post.votes) {
+          post.votes = {};
+        }
+
+        post.votes[uid] = vote;
+
+        console.log("we created a new vote");
+        console.log("adding " + value_as_a_person + " to our denom");
+        console.log("previous denom was", post.dank_calc.denom);
+
+        post.dank_calc.denom += value_as_a_person
+
+        if (vote === "up") {
+
+          console.log("adding " + value_as_a_person + " to our numerator");
+          console.log("previous numerator was", post.dank_calc.numer);
+          post.dank_calc.numer += value_as_a_person;
+
+        }
       }
+      post.dankness = post.dank_calc.numer / post.dank_calc.denom
     }
     return post;
   });
@@ -102,9 +143,8 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
             '</div>' +
           '</div>' +
           '<span class="star">' +
-            '<div class="not-starred material-icons">star_border</div>' +
-            '<div class="starred material-icons">star</div>' +
-            '<div class="star-count">0</div>' +
+            '<div class="downvote material-icons">expand_more</div>' +
+            '<div class="upvote material-icons">expand_less</div>' +
           '</span>' +
           '<div class="text"></div></div>' +
           '<div class="comments-container" style="clear:both;"></div>' +
@@ -127,13 +167,13 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
 
   var addCommentForm = postElement.getElementsByClassName('add-comment')[0];
   var commentInput = postElement.getElementsByClassName('new-comment')[0];
-  var star = postElement.getElementsByClassName('starred')[0];
-  var unStar = postElement.getElementsByClassName('not-starred')[0];
+  var upvote = postElement.getElementsByClassName('upvote')[0];
+  var downvote = postElement.getElementsByClassName('downvote')[0];
 
   // Set values.
   postElement.getElementsByClassName('text')[0].innerText = text;
   postElement.getElementsByClassName('mdl-card__title-text')[0].innerHTML = title +
-                                                                ":<span class='dankness'>" + dankness + "%</span> Dank ";
+                                                                ":<span class='dankness'>" + Math.round(dankness*100) + "%</span> Dank ";
   postElement.getElementsByClassName('avatar')[0].src = moviePic || './silhouette.jpg'
 
   // Listen for comments.
@@ -154,22 +194,22 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
 
   // Listen for likes counts.
   // [START post_value_event_listener]
-  var starCountRef = firebase.database().ref('posts/' + postId + '/starCount');
-  starCountRef.on('value', function(snapshot) {
-    updateStarCount(postElement, snapshot.val());
-  });
+  // var starCountRef = firebase.database().ref('posts/' + postId + '/starCount');
+  // starCountRef.on('value', function(snapshot) {
+  //   updateStarCount(postElement, snapshot.val());
+  // });
   // [END post_value_event_listener]
 
   // Listen for the starred status.
-  var starredStatusRef = firebase.database().ref('posts/' + postId + '/stars/' + uid)
-  starredStatusRef.on('value', function(snapshot) {
-    updateStarredByCurrentUser(postElement, snapshot.val());
+  var votedStatusRef = firebase.database().ref('posts/' + postId + '/votes/' + uid)
+  votedStatusRef.on('value', function(snapshot) {
+    updateVotedByCurrentUser(postElement, snapshot.val());
   });
 
   // Keep track of all Firebase reference on which we are listening.
   listeningFirebaseRefs.push(commentsRef);
-  listeningFirebaseRefs.push(starCountRef);
-  listeningFirebaseRefs.push(starredStatusRef);
+  //listeningFirebaseRefs.push(starCountRef);
+  listeningFirebaseRefs.push(votedStatusRef);
 
   // Create new comment.
   addCommentForm.onsubmit = function(e) {
@@ -180,14 +220,13 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
   };
 
   // Bind starring action.
-  var onStarClicked = function() {
+  var onVoteClicked = function(vote) {
     var globalPostRef = firebase.database().ref('/posts/' + postId);
-    var userPostRef = firebase.database().ref('/user-posts/' + authorId + '/' + postId);
-    toggleStar(globalPostRef, uid);
-    toggleStar(userPostRef, uid);
+    toggleVote(globalPostRef, uid, vote);
   };
-  unStar.onclick = onStarClicked;
-  star.onclick = onStarClicked;
+
+  upvote.onclick = function() { console.log("voting up"); onVoteClicked("up") };
+  downvote.onclick = function() { console.log("voting down"); onVoteClicked("down") };
 
   return postElement;
 }
@@ -206,22 +245,22 @@ function createNewComment(postId, username, uid, text) {
 /**
  * Updates the starred status of the post.
  */
-function updateStarredByCurrentUser(postElement, starred) {
-  if (starred) {
-    postElement.getElementsByClassName('starred')[0].style.display = 'inline-block';
-    postElement.getElementsByClassName('not-starred')[0].style.display = 'none';
-  } else {
-    postElement.getElementsByClassName('starred')[0].style.display = 'none';
-    postElement.getElementsByClassName('not-starred')[0].style.display = 'inline-block';
+function updateVotedByCurrentUser(postElement, voted) {
+  if (voted === "up") {
+    postElement.getElementsByClassName('upvote')[0].classList.add('selected');
+    postElement.getElementsByClassName('downvote')[0].classList.remove('selected');
+  } else if (voted === "down") {
+    postElement.getElementsByClassName('upvote')[0].classList.remove('selected');
+    postElement.getElementsByClassName('downvote')[0].classList.add('selected');
   }
 }
 
 /**
  * Updates the number of stars displayed for a post.
  */
-function updateStarCount(postElement, nbStart) {
-  postElement.getElementsByClassName('star-count')[0].innerText = nbStart;
-}
+// function updateStarCount(postElement, nbStart) {
+//   postElement.getElementsByClassName('star-count')[0].innerText = nbStart;
+// }
 
 /**
  * Creates a comment element and adds it to the given postElement.
@@ -260,7 +299,7 @@ function deleteComment(postElement, id) {
 function startDatabaseQueries() {
   // [START my_top_posts_query]
   var myUserId = firebase.auth().currentUser.uid;
-  var topUserPostsRef = firebase.database().ref('user-posts/' + myUserId).orderByChild('starCount');
+  var topUserPostsRef = firebase.database().ref('posts').orderByChild('dankness');
   // [END my_top_posts_query]
   // [START recent_posts_query]
   var recentPostsRef = firebase.database().ref('posts').limitToLast(100);
@@ -403,15 +442,16 @@ window.addEventListener('load', function() {
     e.preventDefault();
 
     var title = titleInput.value;
-    getMovieInfo(title, function (movie) {
-      console.log(movie);
-      newPostForCurrentUser(movie.title, movie.summary, movie.img, movie.ratings.rottenTomatoes).then(function() {
-        myPostsMenuButton.click();
-      });
 
+    var callback = function (movie) {
+      newPostForCurrentUser(movie.title, movie.summary, movie.img, movie.ratings.rottenTomatoes).then(function() {
+        myTopPostsMenuButton.click();
+      });
       messageInput.value = '';
       titleInput.value = '';
-    })
+    }
+
+    getMovieInfo(title, callback)
   };
 
   // Bind menu buttons.

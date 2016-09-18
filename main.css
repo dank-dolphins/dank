@@ -134,7 +134,7 @@ h1 {
 
     padding: 1px 2px;
     margin: auto;
-    position: relative;;
+    position: relative;
 }
 @media screen and (max-width: 840px) {
     .header .mdl-layout__header-row.titlebar {
@@ -337,18 +337,22 @@ h1 {
 .post .star {
     position: absolute;
     top: 10px;
-    right: 0;
+    right: 10px;
 }
 .post .star .material-icons {
-    font-size: 35px;
-    color: #ffcb0c;
+    font-size: 45px;
+    color: #eee;
+    opacity: 0.8;
+    /*color: #ffcb0c;*/
     cursor: pointer;
 }
 .post .star .material-icons:HOVER {
-    opacity: 0.6;
+    opacity: 1.0;
 }
-.post .star .starred {
-    display: none;
+.post .star .selected {
+  opacity: 0.9;
+
+  color: #ffcb0c;
 }
 
 /* Splash Page */

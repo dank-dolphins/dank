@@ -15,33 +15,34 @@ function getMovieInfo(name, callback) {
       movie.ratings = {}
       //callback(movie)
       httpGetAsync(
-        'https://www.rottentomatoes.com/m/' + movie.title.replace(/ /g, "_"),
+        'https://www.rottentomatoes.com/m/' + movie.title.replace(/ /g, "_").replace(/the_/i, " "),
         function(data) {
           var rating_text = $(data).find('#tomato_meter_link').text().trim()
 
-          movie.ratings.rottenTomatoes = rating_text.slice(0,2)
+          movie.ratings.rottenTomatoes = parseInt(rating_text.slice(0,2),10)/100.0
           if (movie && callback)
             callback(movie)
-        }
-      )
-      // httpGetAsync(
-      //   'https://www.rottentomatoes.com/m/' + movie.title.replace(/ /g, "_").replace(/the_/i, ""),
-      //   function(data) {
-      //     var rating_text = $(data).find('#tomato_meter_link').text().trim()
-      //
-      //     movie.ratings.rottenTomatoes = rating_text.slice(0,2)
-      //     if (movie && callback)
-      //       callback(movie)
-      //   }
-      // )
+        }, function() {
+              httpGetAsync(
+                'https://www.rottentomatoes.com/m/' + movie.title.replace(/ /g, "_"),
+                function(data) {
+                  var rating_text = $(data).find('#tomato_meter_link').text().trim()
+
+                  movie.ratings.rottenTomatoes = parseInt(rating_text.slice(0,2),10)/100.0
+                  if (movie && callback)
+                    callback(movie)
+                }
+              )
+            }
+          )
     }
   )
 }
 
 
-function httpGetAsync(theUrl, callback) {
+function httpGetAsync(theUrl, callback, error_callback) {
 
-    $.ajax('https://cors-anywhere.herokuapp.com/' +theUrl, {success: callback});
+    $.ajax('https://cors-anywhere.herokuapp.com/' +theUrl, {success: callback, error: error_callback});
 }
 
 getMovieInfo("soylent green")

@@ -63,7 +63,7 @@ function MovieSuggestion(uid, username, picture, title, body, dankness) {
  * Star/unstar post.
  */
 // [START post_stars_transaction]
-function toggleVote(postRef, uid, vote, element) {
+function toggleVote(postRef, uid, vote, postElement) {
   var value_as_a_person = 0.5
   postRef.transaction(function(post) {
     if (post) {
@@ -94,6 +94,7 @@ function toggleVote(postRef, uid, vote, element) {
           }
           post.dank_calc.denom -= value_as_a_person
           delete post.votes[uid]
+
           postElement.getElementsByClassName('selected')[0].classList.remove('selected')
         }
       } else {

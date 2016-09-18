@@ -67,16 +67,37 @@ h3 {
 
 /* Header */
 
+h2 {
+  color: #eee;
+  text-shadow: 4px 4px 3px rgba(0,0,0,0.1);
+  font: 100 120px 'Righteous', Helvetica, sans-serif;
+  margin-bottom: 0;
+}
+
 .logo {
   text-align: center;
   padding: 0;
-  margin: 0 60px;
+  margin: 0 30px;
   margin-top: -20px;
-  font: 100 120px 'Cookie', Helvetica, sans-serif;
+  font: 100 100px 'Cookie', Helvetica, sans-serif;
   color: purple;
   text-shadow: 4px 4px 3px rgba(0,0,0,0.1);
 }
 
+h4 {
+  font-size: 50px;
+  font-family: 'Righteous'
+}
+
+.footer {
+  margin-top: 60px;
+  bottom: 10px;
+}
+
+.footer button {
+  margin: 0 auto;
+
+}
 
 h1 {
     color: purple

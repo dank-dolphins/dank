@@ -217,21 +217,21 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
           var userPostRef = firebase.database().ref('/users/' + user);
 
           userPostRef.transaction(function (server_user) {
-            if (!server_user) {console.log("bad user"); return;}
-
+            //if (!server_user) {console.log("bad user"); return;}
+            server_user = {}
             if (!(server_user.value_as_a_person)) server_user.value_as_a_person = 0.5
 
             console.log(server_user.username, "went from", server_user.value_as_a_person);
 
             if (post.pre_votes[user] == 'up') {
               if (post.deltaDank > 0) {
-                server_user.value_as_a_person += (1-server_user.value_as_a_person) * deltaDank
+                server_user.value_as_a_person += (1-server_user.value_as_a_person) * post.deltaDank
               } else {
                 server_user.value_as_a_person *= 0.9
               }
             } else {
               if (post.deltaDank < 0) {
-                server_user.value_as_a_person += (1-server_user.value_as_a_person) * -deltaDank
+                server_user.value_as_a_person += (1-server_user.value_as_a_person) * -post.deltaDank
               } else {
                 server_user.value_as_a_person *= 0.9
               }

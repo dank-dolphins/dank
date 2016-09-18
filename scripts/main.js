@@ -63,7 +63,7 @@ function MovieSuggestion(uid, username, picture, title, body, dankness) {
  * Star/unstar post.
  */
 // [START post_stars_transaction]
-function toggleVote(postRef, uid, vote) {
+function toggleVote(postRef, uid, vote, element) {
   var value_as_a_person = 0.5
   postRef.transaction(function(post) {
     if (post) {
@@ -94,7 +94,7 @@ function toggleVote(postRef, uid, vote) {
           }
           post.dank_calc.denom -= value_as_a_person
           delete post.votes[uid]
-          document.getElementsByClassName('selected')[0].classList.remove('selected')
+          postElement.getElementsByClassName('selected')[0].classList.remove('selected')
         }
       } else {
         if (!post.votes) {
@@ -222,7 +222,7 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
   // Bind starring action.
   var onVoteClicked = function(vote) {
     var globalPostRef = firebase.database().ref('/posts/' + postId);
-    toggleVote(globalPostRef, uid, vote);
+    toggleVote(globalPostRef, uid, vote, postElement);
   };
 
   upvote.onclick = function() { console.log("voting up"); onVoteClicked("up") };

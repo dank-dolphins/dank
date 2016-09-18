@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
+.dankness {
+  color: #ffcb0c;
+  display: block;
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
 html, body {
     font-family: 'Roboto', 'Helvetica', sans-serif;
+    background-color: #f5f5f5
 }
 a {
     text-decoration: underline;
@@ -109,12 +117,21 @@ h1 {
     margin-right: -2px;
     position: relative;
 }
+
+.header {
+
+  float: left;
+}
+
+.mdl-card {
+  width: 100%;
+}
+
 .header .mdl-layout__header-row {
     max-width: 1024px;
     width: 100%;
     height: auto;
     padding: 10px 20px;
-    margin: auto;
     position: relative;
 }
 @media screen and (max-width: 840px) {
@@ -141,14 +158,10 @@ h1 {
 /* Signed-in user */
 
 .avatar {
-    height: 32px;
-    width: 32px;
+    width: 185px;
     display: inline-block;
-    background-size: 32px 32px;
-    border-radius: 32px;
     border: 2px white solid;
-    margin-right: 10px;
-    background-image: url('./silhouette.jpg');
+    margin: 0 auto;
 }
 .username {
     display: inline-block;
@@ -289,7 +302,6 @@ h1 {
 }
 .post .header {
     padding: 10px;
-    width: calc(100% - 100px);
     display: inline-block;
 }
 .post .star-count {
@@ -301,10 +313,10 @@ h1 {
     position: relative;
 }
 .post .comments-container {
-    padding: 15px 10px 0 10px;
+    padding: 0px 10px 0px 10px;
 }
 .post .text {
-    padding: 0 10px;
+    padding: 10px 10px;
     color: grey;
 }
 .post .comments-container .text {

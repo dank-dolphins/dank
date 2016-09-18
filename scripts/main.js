@@ -36,15 +36,16 @@ var listeningFirebaseRefs = [];
  * Saves a new post to the Firebase DB.
  */
 // [START write_fan_out]
-function MovieSuggestion(uid, username, picture, title, body) {
+function MovieSuggestion(uid, username, picture, title, body, dankness) {
   // A post entry.
   var postData = {
     author: username,
     uid: uid,
-    body: '',
+    body: body,
     title: title,
     starCount: 0,
-    authorPic: picture
+    moviePic: picture,
+    dankness: dankness
   };
 
   // Get a key for a new Post.
@@ -85,20 +86,19 @@ function toggleStar(postRef, uid) {
 /**
  * Creates a post element.
  */
-function createPostElement(postId, title, text, author, authorId, authorPic) {
+function createPostElement(postId, title, text, author, authorId, moviePic, dankness) {
   var uid = firebase.auth().currentUser.uid;
 
   var html =
       '<div class="post mdl-cell mdl-cell--12-col ' +
-                  'mdl-cell--6-col-tablet mdl-cell--4-col-desktop mdl-grid mdl-grid--no-spacing">' +
+                  'mdl-cell--6-col-tablet mdl-cell--6-col-desktop mdl-grid mdl-grid--no-spacing" style="margin: 0 auto 20px">' +
         '<div class="mdl-card mdl-shadow--2dp">' +
           '<div class="mdl-card__title mdl-color--light-blue-600 mdl-color-text--white">' +
             '<h4 class="mdl-card__title-text"></h4>' +
           '</div>' +
-          '<div class="header">' +
+          '<div><div class="header">' +
             '<div>' +
-              '<div class="avatar"></div>' +
-              '<div class="username mdl-color-text--black"></div>' +
+              '<img class="avatar"></img>' +
             '</div>' +
           '</div>' +
           '<span class="star">' +
@@ -106,8 +106,8 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
             '<div class="starred material-icons">star</div>' +
             '<div class="star-count">0</div>' +
           '</span>' +
-          '<div class="text"></div>' +
-          '<div class="comments-container"></div>' +
+          '<div class="text"></div></div>' +
+          '<div class="comments-container" style="clear:both;"></div>' +
           '<form class="add-comment" action="#">' +
             '<div class="mdl-textfield mdl-js-textfield">' +
               '<input class="mdl-textfield__input new-comment" type="text">' +
@@ -132,10 +132,9 @@ function createPostElement(postId, title, text, author, authorId, authorPic) {
 
   // Set values.
   postElement.getElementsByClassName('text')[0].innerText = text;
-  postElement.getElementsByClassName('mdl-card__title-text')[0].innerText = title;
-  postElement.getElementsByClassName('username')[0].innerText = author || 'Anonymous';
-  postElement.getElementsByClassName('avatar')[0].style.backgroundImage = 'url("' +
-      (authorPic || './silhouette.jpg') + '")';
+  postElement.getElementsByClassName('mdl-card__title-text')[0].innerHTML = title +
+                                                                ":<span class='dankness'>" + dankness + "%</span> Dank ";
+  postElement.getElementsByClassName('avatar')[0].src = moviePic || './silhouette.jpg'
 
   // Listen for comments.
   // [START child_event_listener_recycler]
@@ -272,8 +271,9 @@ function startDatabaseQueries() {
     postsRef.on('child_added', function(data) {
       var author = data.val().author || 'Anonymous';
       var containerElement = sectionElement.getElementsByClassName('posts-container')[0];
+
       containerElement.insertBefore(
-          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().authorPic),
+          createPostElement(data.key, data.val().title, data.val().body, author, data.val().uid, data.val().moviePic, data.val().dankness),
           containerElement.firstChild);
     });
   };
@@ -348,15 +348,15 @@ function onAuthStateChanged(user) {
 /**
  * Creates a new post for the current user.
  */
-function newPostForCurrentUser(title, text) {
+function newPostForCurrentUser(title, text, posterURL, dankness) {
   // [START single_value_read]
   var userId = firebase.auth().currentUser.uid;
   return firebase.database().ref('/users/' + userId).once('value').then(function(snapshot) {
     var username = snapshot.val().username;
     // [START_EXCLUDE]
     return MovieSuggestion(firebase.auth().currentUser.uid, username,
-        firebase.auth().currentUser.photoURL,
-        title, text);
+        posterURL,
+        title, text, dankness);
     // [END_EXCLUDE]
   });
   // [END single_value_read]
@@ -401,15 +401,17 @@ window.addEventListener('load', function() {
   // Saves message on form submit.
   messageForm.onsubmit = function(e) {
     e.preventDefault();
+
     var title = titleInput.value;
-    var text = ''
-    if ( title) {
-      newPostForCurrentUser(title, text).then(function() {
+    getMovieInfo(title, function (movie) {
+      console.log(movie);
+      newPostForCurrentUser(movie.title, movie.summary, movie.img, movie.ratings.rottenTomatoes).then(function() {
         myPostsMenuButton.click();
       });
+
       messageInput.value = '';
       titleInput.value = '';
-    }
+    })
   };
 
   // Bind menu buttons.

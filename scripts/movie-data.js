@@ -1,34 +1,27 @@
-var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+//var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
-var cheerio = require('cheerio');
+//var cheerio = require('cheerio');
 
 function getMovieInfo(name, callback) {
-  if (!callback)
-    callback = console.log
   var encoded = encodeURIComponent(name)
   httpGetAsync(
     "https://api.themoviedb.org/3/search/movie?api_key=9cf85d75b4512c1419098a22cfd0e94e&language=en-US&query="+encoded,
     function (data) {
-      data = JSON.parse(data)
+      //data = JSON.parse(data)
       var movie = {}
       movie.title = data.results[0].title
       movie.summary = data.results[0].overview
       movie.img = "http://image.tmdb.org/t/p/w185/" + data.results[0].poster_path
       movie.ratings = {}
-      callback(movie)
+      //callback(movie)
       httpGetAsync(
         'https://www.rottentomatoes.com/m/' + movie.title.replace(/ /g, "_"),
         function(data) {
-          if (!$) {
-            var $ = cheerio.load(data)
-            var rating_text = $('#tomato_meter_link').text().trim()
-          } else {
-            var rating_text = $(data).find('#tomato_meter_link').text().trim()
-          }
+          var rating_text = $(data).find('#tomato_meter_link').text().trim()
 
-          movie.ratings.rottenTomatoes = rating_text.slice(0,3)
-          callback(movie)
-
+          movie.ratings.rottenTomatoes = rating_text.slice(0,2)
+          if (movie && callback)
+            callback(movie)
         }
       )
     }
@@ -37,13 +30,8 @@ function getMovieInfo(name, callback) {
 
 
 function httpGetAsync(theUrl, callback) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous
-    xmlHttp.send(null);
+
+    $.ajax('http://cors-anywhere.herokuapp.com/' +theUrl, {success: callback});
 }
 
 getMovieInfo("soylent green")

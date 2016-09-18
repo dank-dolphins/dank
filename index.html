@@ -88,7 +88,10 @@
   <header class="header mdl-layout__header mdl-color-text--white mdl-color--light-blue-700">
 
     <div class="mdl-layout__header-row titlebar">
-      <h4 >Dank</h4>
+      <h4 >
+        <img src="Dank Logo.jpg" alt='Dank' style = "width = 100px;height = 50px;">  <!--image that can link to stuff later -->
+
+      </h4>
       <button id="sign-out-button" class="mdl-button--raised mdl-button mdl-js-button mdl-js-ripple-effect"><i class="material-icons">account_circle</i> Sign out</button>
     </div>
 
@@ -96,7 +99,7 @@
     <div class="tab mdl-layout__header-row mdl-color--light-blue-600">
       <div class="mdl-tab">
         <div id="menu-recent" class="mdl-layout__tab is-active mdl-button mdl-js-button mdl-js-ripple-effect">
-          <i class="material-icons">new_releases</i> Recent Suggestions
+          <i class="material-icons">new_releases</i> Movie Queue
         </div>
         <div id="menu-my-posts" class="mdl-layout__tab mdl-button mdl-js-button mdl-js-ripple-effect">
           <i class="material-icons">home</i> My Suggestions
@@ -138,7 +141,7 @@
       </div>
     </section>
 
-    <!-- Show a list of recent posts -->
+    <!-- Show a list of queued movies -->
     <section class="mdl-grid content" id="recent-posts-list" style="display:none">
       <div class="posts-container mdl-cell mdl-cell--12-col mdl-grid">
       </div>

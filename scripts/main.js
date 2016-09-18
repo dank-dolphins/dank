@@ -36,7 +36,7 @@ var listeningFirebaseRefs = [];
  * Saves a new post to the Firebase DB.
  */
 // [START write_fan_out]
-function writeNewPost(uid, username, picture, title, body) {
+function MovieSuggestion(uid, username, picture, title, body) {
   // A post entry.
   var postData = {
     author: username,
@@ -354,7 +354,7 @@ function newPostForCurrentUser(title, text) {
   return firebase.database().ref('/users/' + userId).once('value').then(function(snapshot) {
     var username = snapshot.val().username;
     // [START_EXCLUDE]
-    return writeNewPost(firebase.auth().currentUser.uid, username,
+    return MovieSuggestion(firebase.auth().currentUser.uid, username,
         firebase.auth().currentUser.photoURL,
         title, text);
     // [END_EXCLUDE]

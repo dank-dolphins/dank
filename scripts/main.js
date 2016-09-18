@@ -187,11 +187,16 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
   addToSurvey.onclick = function () {
     alert("Great!\nBe sure to vote once you watch it and it appears in the Survey Queue")
     var globalPostRef = firebase.database().ref('/posts/' + postId);
+
+
+      postElement.classList.add("watched")
+
     globalPostRef.transaction(function (post) {
       post.watched = true;
       post.dankNaught = post.dankness
-      post.dankness = post.reviews.rottenTomatoes * 100;
+      post.dankness = 0.5
       post.dank_calc = {numer:post.dankness, denom:1.0}
+      post.pre_votes = JSON.parse(JSON.stringify(post.votes))
       post.votes = {}
       return post;
     })
@@ -204,9 +209,36 @@ function createPostElement(postId, title, text, author, authorId, moviePic, dank
       post.dankFinal = post.dankness
 
       post.deltaDank = post.dankFinal - post.dankNaught;
+      for (var user in post.pre_votes) {
+        if (post.pre_votes.hasOwnProperty(user)) {
+          console.log('users/' + user)
+          var userPostRef = firebase.database().ref('/users/' + user);
 
-      post.dank_calc = {numer:post.dankness, denom:1.0}
-      post.votes = {}
+          userPostRef.transaction(function (server_user) {
+            if (!server_user) {console.log("bad user"); return;}
+
+            if (!(server_user.value_as_a_person)) server_user.value_as_a_person = 0.5
+
+            console.log(server_user.username, "went from", server_user.value_as_a_person);
+
+            if (post.pre_votes[user] == 'up') {
+              if (post.deltaDank > 0) {
+                server_user.value_as_a_person += (1-server_user.value_as_a_person) * deltaDank
+              } else {
+                server_user.value_as_a_person *= 0.9
+              }
+            } else {
+              if (post.deltaDank < 0) {
+                server_user.value_as_a_person += (1-server_user.value_as_a_person) * -deltaDank
+              } else {
+                server_user.value_as_a_person *= 0.9
+              }
+            }
+            console.log("to", server_user.value_as_a_person);
+            return server_user
+          })
+        }
+      }
       return post;
     })
   }
